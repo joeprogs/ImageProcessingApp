@@ -1,0 +1,125 @@
+:root {
+    --text-color: black;
+    --surface-color: black;
+    --error-color: #ff2222;
+    --surface-text-color: white;
+    --shadow-color: #aaa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+nav {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 0 8px 1px var(--shadow-color);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+nav a {
+    color: var(--text-color);
+}
+
+.banner {
+    background-color: var(--surface-color);
+    color: var(--surface-text-color);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error {
+    padding: 0.5rem;
+    background-color: var(--error-color);
+    color: var(--surface-text-color);
+    border-radius: 8px;
+}
+
+main {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+main form {
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+input,
+select {
+    border-radius: 8px;
+    border: 1px solid black;
+    padding: 0.5rem;
+}
+
+button {
+    padding: 0.5rem;
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    color: var(--surface-text-color);
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+#resize-form {
+    padding: 1.5rem;
+    border: 1px solid black;
+    border-radius: 8px;
+}
+
+img {
+    border-radius: 8px;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.gallery img {
+    box-shadow: 1px 1px 6px 2px var(--shadow-color);
+    object-fit: contain;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.gallery img:hover {
+    box-shadow: 1px 1px 12px 2px var(--shadow-color);
+    cursor: pointer;
+}
+
+#preview {
+    width: 100%;
+}

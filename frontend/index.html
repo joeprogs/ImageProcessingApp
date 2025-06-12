@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Image Processing App</title>
+        <link rel="stylesheet" href="assets/styles.css" />
+    </head>
+    <body>
+        <header>
+            <nav>
+                <h1>Image Processing App</h1>
+                <ul>
+                    <li><a href="https://github.com/joeprogs">My Github</a></li>
+                </ul>
+            </nav>
+            <div class="banner">
+                <h2>Resize Images Easily</h2>
+                <h4>No Download, No Login</h4>
+            </div>
+        </header>
+        <main>
+            <div class="gallery"></div>
+            <form id="resize-form" class="hidden">
+                <h2>Resize Image</h2>
+                <img id="preview" src="" alt="" />
+                <input
+                    type="number"
+                    name="width"
+                    id="width-input"
+                    placeholder="Width"
+                    required
+                />
+                <input
+                    type="number"
+                    name="height"
+                    id="height-input"
+                    placeholder="Height"
+                    required
+                />
+                <button type="submit">Resize</button>
+                <div class="error hidden"></div>
+            </form>
+            <a href="" class="hidden" id="resized-link">Resized Image Link</a>
+            <form id="upload-form" enctype="multipart/form-data">
+                <label for="image">Choose Image</label>
+                <input
+                    type="file"
+                    name="image"
+                    id="image-upload"
+                    accept="image/*"
+                    required
+                />
+                <button type="submit">Upload</button>
+            </form>
+        </main>
+        <script>
+            const gallery = document.querySelector(".gallery");
+            const errorBanner = document.querySelector(".error");
+            const resizeForm = document.getElementById("resize-form");
+            const uploadForm = document.getElementById("upload-form");
+            const uploadedImage = document.getElementById("image-upload");
+            const imagePreview = document.getElementById("preview");
+            const resizedImageLink = document.getElementById("resized-link");
+
+            const widthInput = document.getElementById("width-input");
+            const heightInput = document.getElementById("height-input");
+
+            uploadForm.addEventListener("submit", async (e) => {
+                const formData = new FormData();
+                formData.append("image", uploadedImage.files[0]);
+                const res = await fetch("http://localhost:3000/api/images", {
+                    method: "POST",
+                    body: formData,
+                });
+            });
+
+            async function loadGallery() {
+                const res = await fetch("http://localhost:3000/api/images");
+                const images = await res.json();
+
+                images.forEach((filename) => {
+                    // Create image in gallery
+                    const img = document.createElement("img");
+                    img.src = `/images/${filename}`;
+                    img.alt = filename;
+
+                    // Resize form appears when image is clicked
+                    img.addEventListener("click", () => {
+                        resizeForm.classList.remove("hidden");
+                        resizedImageLink.classList.add("hidden");
+
+                        // Show image preview in resize form
+                        imagePreview.src = img.src;
+                        imagePreview.alt = img.alt;
+
+                        resizeForm.onsubmit = async (e) => {
+                            e.preventDefault();
+                            const res = await fetch(
+                                `http://localhost:3000/api/resize?file=${img.alt}&width=${widthInput.value}&height=${heightInput.value}`
+                            );
+                            const json = await res.json();
+
+                            if (res.ok) {
+                                errorBanner.classList.add("hidden");
+                                resizeForm.classList.add("hidden");
+                                resizedImageLink.classList.remove("hidden");
+                                resizedImageLink.href = `http://localhost:3000/images/${json["image"]}`;
+                            } else {
+                                errorBanner.classList.remove("hidden");
+                                errorBanner.textContent = json["error"];
+                            }
+                        };
+                    });
+                    gallery.appendChild(img);
+                });
+            }
+            loadGallery();
+        </script>
+    </body>
+</html>
