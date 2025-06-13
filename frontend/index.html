@@ -27,6 +27,7 @@
                 <input
                     type="number"
                     name="width"
+                    min="1"
                     id="width-input"
                     placeholder="Width"
                     required
@@ -34,12 +35,13 @@
                 <input
                     type="number"
                     name="height"
+                    min="1"
                     id="height-input"
                     placeholder="Height"
                     required
                 />
                 <button type="submit">Resize</button>
-                <div class="error hidden"></div>
+                <div class="error hidden" id="resize-error"></div>
             </form>
             <a href="" class="hidden" id="resized-link">Resized Image Link</a>
             <form id="upload-form" enctype="multipart/form-data">
@@ -52,11 +54,13 @@
                     required
                 />
                 <button type="submit">Upload</button>
+                <div class="error hidden" id="upload-error"></div>
             </form>
         </main>
         <script>
             const gallery = document.querySelector(".gallery");
-            const errorBanner = document.querySelector(".error");
+            const resizeError = document.getElementById("resize-error");
+            const uploadError = document.getElementById("upload-error");
             const resizeForm = document.getElementById("resize-form");
             const uploadForm = document.getElementById("upload-form");
             const uploadedImage = document.getElementById("image-upload");
@@ -69,10 +73,20 @@
             uploadForm.addEventListener("submit", async (e) => {
                 const formData = new FormData();
                 formData.append("image", uploadedImage.files[0]);
-                const res = await fetch("http://localhost:3000/api/images", {
+                await fetch("http://localhost:3000/api/images", {
                     method: "POST",
                     body: formData,
                 });
+            });
+
+            uploadedImage.addEventListener("change", (e) => {
+                const isValid = RegExp("image/*").test(e.target.files[0].type);
+                if (!isValid) {
+                    uploadError.classList.remove("hidden");
+                    uploadError.innerText = "Invalid file. This file will not upload.";
+                } else {
+                    uploadError.classList.add("hidden");
+                }
             });
 
             async function loadGallery() {
@@ -96,19 +110,24 @@
 
                         resizeForm.onsubmit = async (e) => {
                             e.preventDefault();
-                            const res = await fetch(
-                                `http://localhost:3000/api/resize?file=${img.alt}&width=${widthInput.value}&height=${heightInput.value}`
-                            );
-                            const json = await res.json();
+                            if (widthInput.value >= 1 && heightInput.value >= 1) {
+                                const res = await fetch(
+                                    `http://localhost:3000/api/resize?file=${img.alt}&width=${widthInput.value}&height=${heightInput.value}`
+                                );
+                                const json = await res.json();
 
-                            if (res.ok) {
-                                errorBanner.classList.add("hidden");
-                                resizeForm.classList.add("hidden");
-                                resizedImageLink.classList.remove("hidden");
-                                resizedImageLink.href = `http://localhost:3000/images/${json["image"]}`;
+                                if (res.ok) {
+                                    resizeError.classList.add("hidden");
+                                    resizeForm.classList.add("hidden");
+                                    resizedImageLink.classList.remove("hidden");
+                                    resizedImageLink.href = `http://localhost:3000/images/${json["image"]}`;
+                                } else {
+                                    resizeError.classList.remove("hidden");
+                                    resizeError.textContent = json["error"];
+                                }
                             } else {
-                                errorBanner.classList.remove("hidden");
-                                errorBanner.textContent = json["error"];
+                                resizeError.classList.remove("hidden");
+                                resizeError.textContent = "Invalid height or width.";
                             }
                         };
                     });
