@@ -73,10 +73,14 @@
             uploadForm.addEventListener("submit", async (e) => {
                 const formData = new FormData();
                 formData.append("image", uploadedImage.files[0]);
-                await fetch("http://localhost:3000/api/images", {
+                const res = await fetch("http://localhost:3000/api/images", {
                     method: "POST",
                     body: formData,
                 });
+                if (!res.ok) {
+                    uploadError.classList.remove("hidden");
+                    uploadError.innerText = "Invalid file.";
+                }
             });
 
             uploadedImage.addEventListener("change", (e) => {

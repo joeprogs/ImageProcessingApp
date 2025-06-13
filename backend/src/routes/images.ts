@@ -6,27 +6,33 @@ import fs from "fs";
 const imagesRoute = express.Router();
 
 // Multer configuration for image uploads
-const storage = multer.diskStorage({
-    destination: "images/",
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, path.parse(file.originalname).name + "-" + Date.now() + ext);
-    },
-});
-
 const upload = multer({
-    storage,
+    storage: multer.diskStorage({
+        destination: "images/",
+        filename: (req, file, cb) => {
+            const ext = path.extname(file.originalname);
+            cb(
+                null,
+                path.parse(file.originalname).name + "-" + Date.now() + ext
+            );
+        },
+    }),
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif/;
-        const isValid = allowedTypes.test(
+        const isValidExt = allowedTypes.test(
             path.extname(file.originalname).toLowerCase()
         );
-        cb(null, isValid);
+        const isValidMime = allowedTypes.test(file.mimetype);
+        cb(null, isValidExt && isValidMime); // Accept if both checks pass
     },
 });
 
 imagesRoute.post("/", upload.single("image"), (req, res) => {
-    res.status(200).json({ message: "Uploaded" });
+    if (!req.file) {
+        res.status(400).json({ error: "Invalid file." });
+    } else {
+        res.status(200).json({ message: "Uploaded" });
+    }
 });
 
 imagesRoute.get("/", (req, res) => {
