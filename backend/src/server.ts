@@ -9,6 +9,7 @@ const port = 3000;
 // Render the frontend
 app.use(express.static(path.join(__dirname, "..", "..", "frontend")));
 app.use("/images", express.static(path.join(__dirname, "..", "..", "images")));
+app.use("/resized", express.static(path.join(__dirname, "..", "..", "cache")));
 
 app.use("/api", routes);
 

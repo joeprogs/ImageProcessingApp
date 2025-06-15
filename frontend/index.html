@@ -45,12 +45,12 @@
             </form>
             <a href="" class="hidden" id="resized-link">Resized Image Link</a>
             <form id="upload-form" enctype="multipart/form-data">
-                <label for="image">Choose Image</label>
+                <label for="image-upload">Choose Image</label>
                 <input
                     type="file"
                     name="image"
                     id="image-upload"
-                    accept="image/*"
+                    accept="image/jpeg"
                     required
                 />
                 <button type="submit">Upload</button>
@@ -70,7 +70,49 @@
             const widthInput = document.getElementById("width-input");
             const heightInput = document.getElementById("height-input");
 
+            const addImage = (imageName) => {
+                const img = document.createElement("img");
+                img.src = `/images/${imageName}`;
+                img.alt = imageName;
+
+                // Resize form appears when image is clicked
+                img.addEventListener("click", () => {
+                    resizeForm.classList.remove("hidden");
+                    resizedImageLink.classList.add("hidden");
+
+                    // Show image preview in resize form
+                    imagePreview.src = img.src;
+                    imagePreview.alt = img.alt;
+
+                    resizeForm.onsubmit = async (e) => {
+                        e.preventDefault();
+                        if (widthInput.value >= 1 && heightInput.value >= 1) {
+                            const res = await fetch(
+                                `http://localhost:3000/api/resize?file=${img.alt}&width=${widthInput.value}&height=${heightInput.value}`
+                            );
+                            const json = await res.json();
+
+                            if (res.ok) {
+                                resizeError.classList.add("hidden");
+                                resizeForm.classList.add("hidden");
+                                resizedImageLink.classList.remove("hidden");
+                                resizedImageLink.href = `http://localhost:3000/resized/${json["image"]}`;
+                            } else {
+                                resizeError.classList.remove("hidden");
+                                resizeError.textContent = json["error"];
+                            }
+                        } else {
+                            resizeError.classList.remove("hidden");
+                            resizeError.textContent =
+                                "Invalid height or width.";
+                        }
+                    };
+                });
+                gallery.appendChild(img);
+            };
+
             uploadForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
                 const formData = new FormData();
                 formData.append("image", uploadedImage.files[0]);
                 const res = await fetch("http://localhost:3000/api/images", {
@@ -80,14 +122,17 @@
                 if (!res.ok) {
                     uploadError.classList.remove("hidden");
                     uploadError.innerText = "Invalid file.";
+                } else {
+                    reloadGallery();
                 }
             });
 
             uploadedImage.addEventListener("change", (e) => {
-                const isValid = RegExp("image/*").test(e.target.files[0].type);
+                const isValid = /jpeg|jpg/.test(e.target.files[0].type);
                 if (!isValid) {
                     uploadError.classList.remove("hidden");
-                    uploadError.innerText = "Invalid file. This file will not upload.";
+                    uploadError.innerText =
+                        "Invalid file. This file will not upload.";
                 } else {
                     uploadError.classList.add("hidden");
                 }
@@ -98,46 +143,15 @@
                 const images = await res.json();
 
                 images.forEach((filename) => {
-                    // Create image in gallery
-                    const img = document.createElement("img");
-                    img.src = `/images/${filename}`;
-                    img.alt = filename;
-
-                    // Resize form appears when image is clicked
-                    img.addEventListener("click", () => {
-                        resizeForm.classList.remove("hidden");
-                        resizedImageLink.classList.add("hidden");
-
-                        // Show image preview in resize form
-                        imagePreview.src = img.src;
-                        imagePreview.alt = img.alt;
-
-                        resizeForm.onsubmit = async (e) => {
-                            e.preventDefault();
-                            if (widthInput.value >= 1 && heightInput.value >= 1) {
-                                const res = await fetch(
-                                    `http://localhost:3000/api/resize?file=${img.alt}&width=${widthInput.value}&height=${heightInput.value}`
-                                );
-                                const json = await res.json();
-
-                                if (res.ok) {
-                                    resizeError.classList.add("hidden");
-                                    resizeForm.classList.add("hidden");
-                                    resizedImageLink.classList.remove("hidden");
-                                    resizedImageLink.href = `http://localhost:3000/images/${json["image"]}`;
-                                } else {
-                                    resizeError.classList.remove("hidden");
-                                    resizeError.textContent = json["error"];
-                                }
-                            } else {
-                                resizeError.classList.remove("hidden");
-                                resizeError.textContent = "Invalid height or width.";
-                            }
-                        };
-                    });
-                    gallery.appendChild(img);
+                    addImage(filename);
                 });
             }
+
+            function reloadGallery() {
+                gallery.innerText = "";
+                loadGallery();
+            }
+
             loadGallery();
         </script>
     </body>

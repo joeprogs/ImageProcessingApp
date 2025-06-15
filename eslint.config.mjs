@@ -7,5 +7,5 @@ export default defineConfig([
         files: ["backend/src/**/*.{ts,mts,cts}"],
         languageOptions: { globals: globals.node },
     },
-    tseslint.configs.recommended
+    tseslint.configs.recommended,
 ]);

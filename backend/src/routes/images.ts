@@ -5,20 +5,25 @@ import fs from "fs";
 
 const imagesRoute = express.Router();
 
+function generateImageName(originalName: string): string {
+    return (
+        path.parse(originalName).name +
+        "-" +
+        Date.now() +
+        path.extname(originalName)
+    );
+}
+
 // Multer configuration for image uploads
 const upload = multer({
     storage: multer.diskStorage({
         destination: "images/",
         filename: (req, file, cb) => {
-            const ext = path.extname(file.originalname);
-            cb(
-                null,
-                path.parse(file.originalname).name + "-" + Date.now() + ext
-            );
+            cb(null, generateImageName(file.originalname));
         },
     }),
     fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif/;
+        const allowedTypes = /jpeg|jpg/;
         const isValidExt = allowedTypes.test(
             path.extname(file.originalname).toLowerCase()
         );
@@ -31,7 +36,9 @@ imagesRoute.post("/", upload.single("image"), (req, res) => {
     if (!req.file) {
         res.status(400).json({ error: "Invalid file." });
     } else {
-        res.status(200).json({ message: "Uploaded" });
+        res.status(200).json({
+            image: generateImageName(req.file.originalname),
+        });
     }
 });
 
@@ -39,9 +46,7 @@ imagesRoute.get("/", (req, res) => {
     const imagesDir = path.join(__dirname, "../../../images");
     try {
         const files = fs.readdirSync(imagesDir);
-        const images = files.filter((file) =>
-            /\.(jpg|jpeg|png|gif)$/i.test(file)
-        );
+        const images = files.filter((file) => /\.(jpg|jpeg)$/i.test(file));
         res.json(images);
     } catch (err) {
         res.status(500).send(`Server Error: ${err}`);
